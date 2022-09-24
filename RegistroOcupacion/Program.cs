@@ -1,25 +1,25 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
-using RegistroOcupacion.Data;
 using Microsoft.EntityFrameworkCore;
 using RegistroOcupacion.BLL;
 using RegistroOcupacion.DAL;
 
+
 var builder = WebApplication.CreateBuilder(args);
+
+var ConStr = builder.Configuration.GetConnectionString("ConStr");
+
+builder.Services.AddDbContext<Contexto>(options => 
+options.UseSqlite(ConStr)
+);
+   
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddSingleton<WeatherForecastService>();
 
-
-
-builder.Services.AddDbContext<Contexto>(options =>
-
-                options.UseSqlite(builder.Configuration.GetConnectionString("ConStr"))
-
-                );
-builder.Services.AddTransient<OcupacionesBLL>();
+builder.Services.AddScoped<OcupacionesBLL>();
+builder.Services.AddScoped<PersonaBLL>();
 
 
 var app = builder.Build();
