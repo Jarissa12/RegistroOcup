@@ -61,7 +61,7 @@ namespace RPrestamos.BLL
                else
                     return this.Modificar1(personas);
           }
-          public List<Personas> GetList(Expression<Func<Personas, bool>> Criterio)
+          public List<Personas> GetPersonas(Expression<Func<Personas, bool>> Criterio)
           {
                return contextos.Personas
                    .AsNoTracking()

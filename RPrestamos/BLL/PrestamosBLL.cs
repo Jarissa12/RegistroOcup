@@ -11,27 +11,60 @@ namespace RPrestamos.BLL
 
         private Contexto contextos;
 
-          public PrestamosBLL(Contexto contexto)
-          {
-               contextos = contexto;
-          }
+        public PrestamosBLL(Contexto contexto)
+        {
+            contextos = contexto;
+        }
 
-           public bool Existe2(int PrestamosId)
+        public bool Existe2(int PrestamosId)
         {
             return contextos.Prestamos.Any(o => o.PrestamosId == PrestamosId);
         }
 
-        private bool Insertar2(Prestamos prestamos)
+        public bool Insertar2(Prestamos prestamo)
         {
-            contextos.Prestamos.Add(prestamos);
+            contextos.Prestamos.Add(prestamo);
+             prestamo.Balance = prestamo.Monto;
+
+            var persona = contextos.Personas.Find(prestamo.PersonaId);
+            persona.Balance += prestamo.Monto;
+
+            int cantidad = contextos.SaveChanges();
+
+            return cantidad > 0;
+        }
+
+        public bool Modificar2(Prestamos prestamoActual)
+        {
+            //descontar el monto anterior
+            var prestamoAnterior = contextos.Prestamos
+                .Where(p => p.PrestamosId == prestamoActual.PrestamosId)
+                .AsNoTracking()
+                .SingleOrDefault();
+
+            var personaAnterior = contextos.Personas.Find(prestamoAnterior.PersonaId);
+            personaAnterior.Balance -= prestamoAnterior.Monto;
+
+            contextos.Entry(prestamoActual).State = EntityState.Modified;
+
+            //descontar el monto nuevo
+            var persona = contextos.Personas.Find(prestamoActual.PersonaId);
+            persona.Balance += prestamoActual.Monto;
+
             return contextos.SaveChanges() > 0;
         }
 
-        private bool Modificar2(Prestamos prestamos)
+
+        
+        public bool Eliminar2(Prestamos prestamo)
         {
-            contextos.Entry(prestamos).State = EntityState.Modified;
+            var persona = contextos.Personas.Find(prestamo.PersonaId);
+            persona.Balance -= prestamo.Monto;
+
+            contextos.Entry(prestamo).State = EntityState.Deleted;
             return contextos.SaveChanges() > 0;
         }
+
 
         public bool Guardar2(Prestamos prestamos)
         {
@@ -39,22 +72,20 @@ namespace RPrestamos.BLL
                 return this.Insertar2(prestamos);
             else
                 return this.Modificar2(prestamos);
+
+                
         }
 
-        public bool Eliminar2(Prestamos prestamos)
-        {
-            contextos.Entry(prestamos).State = EntityState.Deleted;
-            return contextos.SaveChanges() > 0;
-        }
+
 
         public Prestamos? Buscar2(int prestamosId)
-          {
-               return contextos.Prestamos 
-                       .Where(o => o.PrestamosId == prestamosId)
-                       .AsNoTracking()
-                       .SingleOrDefault();
+        {
+            return contextos.Prestamos
+                    .Where(o => o.PrestamosId == prestamosId)
+                    .AsNoTracking()
+                    .SingleOrDefault();
 
-          }
+        }
 
 
         public bool Editar(Prestamos prestamos)
